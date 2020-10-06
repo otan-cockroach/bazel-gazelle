@@ -313,7 +313,9 @@ func filterFiles(files *[]string, pred func(string) bool) {
 	*files = (*files)[:w]
 }
 
-func buildPackages(c *config.Config, dir, rel string, goFiles []string, hasTestdata bool) (packageMap map[string]*goPackage, goFilesWithUnknownPackage []fileInfo) {
+func buildPackages(
+	c *config.Config, dir, rel string, goFiles []string, hasTestdata bool,
+) (packageMap map[string]*goPackage, goFilesWithUnknownPackage []fileInfo) {
 	// Process .go and .proto files first, since these determine the package name.
 	packageMap = make(map[string]*goPackage)
 	for _, f := range goFiles {
@@ -348,7 +350,9 @@ var inferImportPathErrorOnce sync.Once
 // selectPackages selects one Go packages out of the buildable packages found
 // in a directory. If multiple packages are found, it returns the package
 // whose name matches the directory if such a package exists.
-func selectPackage(c *config.Config, dir string, packageMap map[string]*goPackage) (*goPackage, error) {
+func selectPackage(
+	c *config.Config, dir string, packageMap map[string]*goPackage,
+) (*goPackage, error) {
 	buildablePackages := make(map[string]*goPackage)
 	for name, pkg := range packageMap {
 		if pkg.isBuildable(c) {
@@ -412,7 +416,9 @@ type generator struct {
 	shouldSetVisibility bool
 }
 
-func (g *generator) generateProto(mode proto.Mode, target protoTarget, importPath string) (string, []*rule.Rule) {
+func (g *generator) generateProto(
+	mode proto.Mode, target protoTarget, importPath string,
+) (string, []*rule.Rule) {
 	if !mode.ShouldGenerateRules() && mode != proto.LegacyMode {
 		// Don't create or delete proto rules in this mode. When proto mode is disabled,
 		// there may be hand-written rules or pre-generated Go files
@@ -649,7 +655,9 @@ func (g *generator) maybeGenerateExtraLib(lib *rule.Rule, pkg *goPackage) *rule.
 	return r
 }
 
-func (g *generator) setCommonAttrs(r *rule.Rule, pkgRel string, visibility []string, target goTarget, embed string) {
+func (g *generator) setCommonAttrs(
+	r *rule.Rule, pkgRel string, visibility []string, target goTarget, embed string,
+) {
 	if !target.sources.isEmpty() {
 		r.SetAttr("srcs", target.sources.buildFlat())
 	}
@@ -661,6 +669,12 @@ func (g *generator) setCommonAttrs(r *rule.Rule, pkgRel string, visibility []str
 	}
 	if !target.copts.isEmpty() {
 		r.SetAttr("copts", g.options(target.copts.build(), pkgRel))
+	}
+	if !target.cppopts.isEmpty() {
+		r.SetAttr("cppopts", g.options(target.cppopts.build(), pkgRel))
+	}
+	if !target.cxxopts.isEmpty() {
+		r.SetAttr("cxxopts", g.options(target.cxxopts.build(), pkgRel))
 	}
 	if g.shouldSetVisibility && len(visibility) > 0 {
 		r.SetAttr("visibility", visibility)
